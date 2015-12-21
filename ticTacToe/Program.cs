@@ -9,14 +9,13 @@ namespace ticTacToe
 {
     class Program
     {
-        const Byte EMPTY = 1;
-        const Byte CROSS = 2;
+        const Byte EMPTY = 0;
+        const Byte CROSS = 1;
         const Byte CIRCLE = 4;
 
         struct Position
         {
             public Byte X,Y;
-
             public Position(Byte x, Byte y) : this()
             {
                 this.X = x;
@@ -60,7 +59,6 @@ namespace ticTacToe
             }
         }
 
-        //Error Code 255 = key pressed is out of range. please enter keys from 0-2
         static Byte getByteFromKey(ConsoleKey key)
         {
             switch (key)
@@ -75,8 +73,6 @@ namespace ticTacToe
                 case ConsoleKey.NumPad2:
                     return 2;
                 default:
-                    //#TODO: refactor: maybe there's a better solution.
-                    //return 255;
                     throw new IndexOutOfRangeException("please enter keys from 0-2");
             }
         }
@@ -90,7 +86,7 @@ namespace ticTacToe
             Console.Read();
         }
 
-        private static Position promptPosition(String player)
+        static Position promptPosition(String player)
         {
             Console.WriteLine("{0} where do you want to place your sign?", player);
             Console.Write(Environment.NewLine + "x:");
@@ -102,29 +98,63 @@ namespace ticTacToe
             Console.WriteLine("{0} set a sign at {1}/{2}", player, enteredX, enteredY);
             return new Position(enteredX, enteredY);
         }
+
+        //return 0 if noone is victorious, else return it's playernumber
+        static Byte checkForVictory(Byte[,] array)
+        {
+            //horizontal row calculation
+            for (int y = 0; y < array.GetLength(1); y++)
+            {
+                Byte rowTotal = 0;
+                for (int x = 0; x < array.GetLength(0); x++)
+                {
+                    rowTotal += array[x, y];
+                }
+                if (rowTotal == 3)
+                {
+                    //3 Crosses in a row
+                    return 1;
+                }
+                else if (rowTotal == 12)
+                {
+                    //3 Circles in a row
+                    return 2;
+                }
+            }
+            return 0;
+        }
         #endregion
 
         static void Main(string[] args)
         {
-            Console.BackgroundColor = ConsoleColor.DarkCyan;
-
             Byte[,] grid = new Byte[3, 3];
             Boolean playerOnesTurn = true;
-            Boolean noOneHasWonYet = true;
+            Byte victoriuousPlayer = 0;
             drawInstructions();
             fill2dByteArray(grid, EMPTY);
 
-            while (noOneHasWonYet)
+            while (victoriuousPlayer == 0)
             {
-                Console.Clear();
+                //Console.Clear();
                 draw2dByteArray(grid);
                 if (playerOnesTurn)
                 {
                     
-                    Position signToAdd = promptPosition("player1");
+                    Position signToAdd;
+                    try
+                    {
+                        signToAdd = promptPosition("player1");
+                    }
+                    catch (Exception)
+                    {
+                        //skip the current iteration if the user entered a false key
+                        //#TODO: make error message persistent over Console.Clear() of a turn
+                        continue;
+                    }
                     if (grid[signToAdd.X, signToAdd.Y] == EMPTY)
                     {
                         grid[signToAdd.X, signToAdd.Y] = CROSS;
+                        victoriuousPlayer = checkForVictory(grid);
                         playerOnesTurn = !playerOnesTurn;
                     }
                     else
@@ -139,6 +169,7 @@ namespace ticTacToe
                     if (grid[signToAdd.X, signToAdd.Y] == EMPTY)
                     {
                         grid[signToAdd.X, signToAdd.Y] = CIRCLE;
+                        victoriuousPlayer = checkForVictory(grid);
                         playerOnesTurn = !playerOnesTurn;
                     }
                     else
@@ -148,9 +179,10 @@ namespace ticTacToe
                     }
                 }
             }
-
             Console.Clear();
-            Console.Read();
+            draw2dByteArray(grid);
+            Console.WriteLine("player {0} is victorious", victoriuousPlayer);
+            String tmp = Console.ReadLine();
         }
     }
 }
