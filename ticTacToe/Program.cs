@@ -100,26 +100,80 @@ namespace ticTacToe
         }
 
         //return 0 if noone is victorious, else return it's playernumber
+        //#TODO: method is too big .. extract some methods
         static Byte checkForVictory(Byte[,] array)
         {
+            Byte rowTotal = 0;
             //horizontal row calculation
             for (int y = 0; y < array.GetLength(1); y++)
             {
-                Byte rowTotal = 0;
+                rowTotal = 0;
                 for (int x = 0; x < array.GetLength(0); x++)
                 {
                     rowTotal += array[x, y];
                 }
-                if (rowTotal == 3)
+                if (rowTotal == 3*CROSS)
                 {
                     //3 Crosses in a row
                     return 1;
                 }
-                else if (rowTotal == 12)
+                else if (rowTotal == 3*CIRCLE)
                 {
                     //3 Circles in a row
                     return 2;
                 }
+            }
+            //vertical row calculation
+            for (int x = 0; x < array.GetLength(0); x++)
+            {
+                rowTotal = 0;
+                for (int y = 0; y < array.GetLength(1); y++)
+                {
+                    rowTotal += array[x, y];
+                }
+                //#TODO: maybe make it more modular? by using (rowTotal == array.GetLength(1) * CROSS)
+                if (rowTotal == 3 * CROSS)
+                {
+                    //3 Crosses in a row
+                    return 1;
+                }
+                else if (rowTotal == 3 * CIRCLE)
+                {
+                    //3 Circles in a row
+                    return 2;
+                }
+            }
+            //diagonal row calculation
+            //not scalable for bigger arrays
+            //maybe this grade of modularity and scalability doesn't make sense for such a small ticTacToe since it'ss always gonna be 3 rows only
+            rowTotal = 0;
+            for (int i = 0; i < 3; i++)
+            {
+                rowTotal += array[i, i];
+            }
+            if (rowTotal == 3 * CROSS)
+            {
+                //3 Crosses in a row
+                return 1;
+            }
+            else if (rowTotal == 3 * CIRCLE)
+            {
+                //3 Circles in a row
+                return 2;
+            }
+            rowTotal = 0;
+            rowTotal += array[0, 2];
+            rowTotal += array[1, 1];
+            rowTotal += array[2, 0];
+            if (rowTotal == 3 * CROSS)
+            {
+                //3 Crosses in a row
+                return 1;
+            }
+            else if (rowTotal == 3 * CIRCLE)
+            {
+                //3 Circles in a row
+                return 2;
             }
             return 0;
         }
@@ -127,23 +181,25 @@ namespace ticTacToe
 
         static void Main(string[] args)
         {
+            Byte turns = 0;
             Byte[,] grid = new Byte[3, 3];
             Boolean playerOnesTurn = true;
             Byte victoriuousPlayer = 0;
             drawInstructions();
             fill2dByteArray(grid, EMPTY);
 
-            while (victoriuousPlayer == 0)
+            //exit the loop as soon as a player is victorious or it's a draw
+            while (victoriuousPlayer == 0 && turns < 9)
             {
+                Console.WriteLine(turns);
                 //Console.Clear();
                 draw2dByteArray(grid);
                 if (playerOnesTurn)
                 {
-                    
                     Position signToAdd;
                     try
                     {
-                        signToAdd = promptPosition("player1");
+                        signToAdd = promptPosition("player1 (X)");
                     }
                     catch (Exception)
                     {
@@ -154,6 +210,7 @@ namespace ticTacToe
                     if (grid[signToAdd.X, signToAdd.Y] == EMPTY)
                     {
                         grid[signToAdd.X, signToAdd.Y] = CROSS;
+                        turns++;
                         victoriuousPlayer = checkForVictory(grid);
                         playerOnesTurn = !playerOnesTurn;
                     }
@@ -165,10 +222,20 @@ namespace ticTacToe
                 }
                 else
                 {
-                    Position signToAdd = promptPosition("player2");
+                    Position signToAdd;
+                    try
+                    {
+                        signToAdd = promptPosition("player2 (O)");
+                    }
+                    catch (Exception)
+                    {
+                        //skip the current iteration if the user entered a false key
+                        continue;
+                    }
                     if (grid[signToAdd.X, signToAdd.Y] == EMPTY)
                     {
                         grid[signToAdd.X, signToAdd.Y] = CIRCLE;
+                        turns++;
                         victoriuousPlayer = checkForVictory(grid);
                         playerOnesTurn = !playerOnesTurn;
                     }
@@ -181,7 +248,14 @@ namespace ticTacToe
             }
             Console.Clear();
             draw2dByteArray(grid);
-            Console.WriteLine("player {0} is victorious", victoriuousPlayer);
+            if (victoriuousPlayer != 0)
+            {
+                Console.WriteLine("player {0} is victorious", victoriuousPlayer);
+            }
+            else
+            {
+                Console.WriteLine("draw");
+            }
             String tmp = Console.ReadLine();
         }
     }
