@@ -104,7 +104,7 @@ namespace ticTacToe
         static Byte checkForVictory(Byte[,] array)
         {
             Byte rowTotal = 0;
-            //horizontal row calculation
+            //check if the total of any horizontal row is equal to 3 times CROSS
             for (int y = 0; y < array.GetLength(1); y++)
             {
                 rowTotal = 0;
@@ -131,7 +131,6 @@ namespace ticTacToe
                 {
                     rowTotal += array[x, y];
                 }
-                //#TODO: maybe make it more modular? by using (rowTotal == array.GetLength(1) * CROSS)
                 if (rowTotal == 3 * CROSS)
                 {
                     //3 Crosses in a row
